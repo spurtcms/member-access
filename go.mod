@@ -1,4 +1,4 @@
-module github.com/spurtcms/memberaccess
+module github.com/spurtcms/member-access
 
 go 1.19
 
