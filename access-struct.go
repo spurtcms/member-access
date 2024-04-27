@@ -42,7 +42,7 @@ type tblaccesscontrol struct {
 	AccessGrantedModules []string                `gorm:"-"`
 }
 
-type tblaccesscontrolpages struct {
+type Tblaccesscontrolpages struct {
 	Id                       int `gorm:"primaryKey;auto_increment"`
 	AccessControlUserGroupId int
 	SpacesId                 int
@@ -101,6 +101,24 @@ type PageGroup struct {
 type Entry struct {
 	Id        string `json:"id"`
 	ChannelId string `json:"channelId"`
+}
+
+type RestrictPage struct {
+	AccessId int
+	PageId   int
+	PageIds  []int
+}
+
+type RestrictGroup struct {
+	AccessId  int
+	GroupId   int
+	GroupsIds []int
+}
+
+type RestrictSpace struct {
+	AccessId int
+	SpaceId  int
+	SpacesId []int
 }
 
 type MemberAccessControlRequired struct {

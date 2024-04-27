@@ -92,7 +92,7 @@ func (AccessModel) GetContentAccessByAccessId(id int, DB *gorm.DB) (accesscontro
 	return accesscontrol, nil
 }
 
-func (AccessModel) GetPagesAndPageGroupsInContentAccess(accessId int, DB *gorm.DB) (contentAccessPages []TblAccessControlPages, err error) {
+func (AccessModel) GetPagesAndPageGroupsInContentAccess(accessId int, DB *gorm.DB) (contentAccessPages []Tblaccesscontrolpages, err error) {
 
 	query := DB.Model(TblAccessControlPages{}).Select("tbl_access_control_pages.*,tbl_pages.parent_id").Where("tbl_access_controls.id = ?", accessId)
 
@@ -107,8 +107,75 @@ func (AccessModel) GetPagesAndPageGroupsInContentAccess(accessId int, DB *gorm.D
 
 	if err := query.Error; err != nil {
 
-		return []TblAccessControlPages{}, err
+		return []Tblaccesscontrolpages{}, err
 	}
 
 	return contentAccessPages, nil
+}
+
+func (AccessModel) GetPageGroupsInContentAccess(accessId int, DB *gorm.DB) (contentAccessPages []Tblaccesscontrolpages, err error) {
+
+	query := DB.Model(TblAccessControlPages{}).Select("tbl_access_control_pages.page_group_id,tbl_access_control_pages.id").Where("tbl_access_controls.id = ?", accessId)
+
+	/*Joins*/
+	query.Joins("left join tbl_access_control_user_groups on tbl_access_control_user_groups.id = tbl_access_control_pages.access_control_user_group_id and tbl_access_control_user_groups.is_deleted = 0")
+
+	query.Joins("inner join tbl_access_controls on tbl_access_controls.id = tbl_access_control_user_groups.access_control_id and tbl_access_controls.is_deleted = 0")
+
+	query.Group("page_group_id")
+
+	query.Find(&contentAccessPages)
+
+	if err := query.Error; err != nil {
+
+		return []Tblaccesscontrolpages{}, err
+	}
+
+	return contentAccessPages, nil
+}
+
+func (AccessModel) GetSelectedSpaces(accessId int, DB *gorm.DB) (contentAccessPages []Tblaccesscontrolpages, err error) {
+
+	query := DB.Model(TblAccessControlPages{}).Select("spaces_id").Where("tbl_access_controls.id = ?", accessId)
+
+	/*Joins*/
+	query.Joins("left join tbl_access_control_user_groups on tbl_access_control_user_groups.id = tbl_access_control_pages.access_control_user_group_id and tbl_access_control_user_groups.is_deleted = 0")
+
+	query.Joins("inner join tbl_access_controls on tbl_access_controls.id = tbl_access_control_user_groups.access_control_id and tbl_access_controls.is_deleted = 0")
+
+	query.Group("spaces_id")
+
+	query.Find(&contentAccessPages)
+
+	if err := query.Error; err != nil {
+
+		return []Tblaccesscontrolpages{}, err
+	}
+
+	return contentAccessPages, nil
+}
+
+func (AccessModel) GetSelectedEntries(accessId int, DB *gorm.DB) (contentAccessPages []Tblaccesscontrolpages, err error) {
+
+	query := DB.Model(TblAccessControlPages{}).Where("tbl_access_controls.id = ?", accessId)
+
+	/*Joins*/
+	query.Joins("left join tbl_access_control_user_groups on tbl_access_control_user_groups.id = tbl_access_control_pages.access_control_user_group_id and tbl_access_control_user_groups.is_deleted = 0")
+
+	query.Joins("inner join tbl_access_controls on tbl_access_controls.id = tbl_access_control_user_groups.access_control_id and tbl_access_controls.is_deleted = 0")
+
+	query.Find(&contentAccessPages)
+
+	if err := query.Error; err != nil {
+
+		return []Tblaccesscontrolpages{}, err
+	}
+
+	return contentAccessPages, nil
+}
+
+func (AccessModel) CreatePage(access TblAccessControlPages, accessId int, DB *gorm.DB) {
+
+	// query := DB.Model(TblAccessControlPages{})
+
 }

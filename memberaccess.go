@@ -1,6 +1,7 @@
 package memberaccess
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/spurtcms/member"
@@ -102,223 +103,266 @@ func (access *AccessControl) GetControlAccessById(accessid int) (accesslist Tbla
 
 	AccessControl, _ := Accessmodel.GetContentAccessByAccessId(accessid, access.DB)
 
-	var pages []Page
-
-	var subpages []SubPage
-
-	var pagegroups []PageGroup
-
-	contentAccessPages, err := Accessmodel.GetPagesAndPageGroupsInContentAccess(accessid, access.DB)
-
-	var pageArrContainer [][]TblPage
-
-	var pgArrContainer []TblAccessControlPages
-
-	seen1 := make(map[int]bool)
-
-	seen2 := make(map[int]bool)
-
-	seen3 := make(map[int]bool)
-
-	seen4 := make(map[int]bool)
-
-	for _, pagz := range contentAccessPages {
-
-		if pagz.ParentPageId == 0 {
-
-			if !seen1[pagz.PageId] {
-
-				var pg Page
-
-				pg.Id = strconv.Itoa(pagz.PageId)
-
-				pg.GroupId = strconv.Itoa(pagz.PageGroupId)
-
-				pg.SpaceId = strconv.Itoa(pagz.SpacesId)
-
-				pages = append(pages, pg)
-
-				seen1[pagz.PageId] = true
-
-			}
-		}
-
-		if pagz.ParentPageId != 0 {
-
-			if !seen2[pagz.PageId] {
-
-				var spg SubPage
-
-				spg.Id = strconv.Itoa(pagz.PageId)
-
-				spg.GroupId = strconv.Itoa(pagz.PageGroupId)
-
-				spg.ParentId = strconv.Itoa(pagz.ParentPageId)
-
-				spg.SpaceId = strconv.Itoa(pagz.SpacesId)
-
-				subpages = append(subpages, spg)
-
-				seen2[pagz.PageId] = true
-			}
-
-		}
-
-		if pagz.PageGroupId != 0 {
-
-			if !seen3[pagz.PageGroupId] {
-
-				var pagesinPgg []TblPage
-
-				Accessmodel.GetPagesUnderPageGroup(&pagesinPgg, pagz.PageGroupId, access.DB)
-
-				pageArrContainer = append(pageArrContainer, pagesinPgg)
-
-				seen3[pagz.PageGroupId] = true
-
-			}
-
-			if !seen4[pagz.PageId] {
-
-				pgArrContainer = append(pgArrContainer, pagz)
-
-				seen4[pagz.PageId] = true
-
-			}
-
-		}
-
-	}
-
-	// log.Println("orgpgg", pageArrContainer)
-
-	// log.Println("pggchk", pgArrContainer)
-
-	groupedObjects := make(map[int][]TblAccessControlPages)
-
-	OriginalPgg := make(map[int][]TblPage)
-
-	for _, pgz := range pgArrContainer {
-
-		if _, exists := groupedObjects[pgz.PageGroupId]; !exists {
-
-			groupedObjects[pgz.PageGroupId] = []TblAccessControlPages{}
-
-		}
-
-		groupedObjects[pgz.PageGroupId] = append(groupedObjects[pgz.PageGroupId], pgz)
-	}
-
-	for _, pggArr := range pageArrContainer {
-
-		for _, pages := range pggArr {
-
-			OriginalPgg[pages.PageGroupId] = pggArr
-
-		}
-
-	}
-
-	for pggId, array := range OriginalPgg {
-
-		for pggid := range groupedObjects {
-
-			if len(OriginalPgg[pggId]) == len(groupedObjects[pggid]) && pggId == pggid {
-
-				for index, result := range array {
-
-					if index == 0 {
-
-						var pgg PageGroup
-
-						pgg.Id = strconv.Itoa(result.PageGroupId)
-
-						pgg.SpaceId = strconv.Itoa(result.SpacesId)
-
-						pagegroups = append(pagegroups, pgg)
-
-						break
-					}
-
-				}
-
-			}
-		}
-	}
-
-	// var access_grant_memgrps_list []int
-
-	var accessGrantedMemgrps []int
-
-	Accessmodel.GetAccessGrantedMemberGroupsList(&accessGrantedMemgrps, accessid, access.DB)
-
-	var spaceIds []int
-
-	Accessmodel.GetContentAccessSpaces(&spaceIds, accessid, access.DB)
-
-	var accessSpaceIds []int
-
-	for _, spaceId := range spaceIds {
-
-		var contentAccessPages []int
-
-		Accessmodel.GetcontentAccessPagesBySpaceId(&contentAccessPages, spaceId, accessid, access.DB)
-
-		var tblPageData []TblPage
-
-		Accessmodel.GetPagesUnderSpaces(&tblPageData, spaceId, access.DB)
-
-		if len(tblPageData) == len(contentAccessPages) {
-
-			accessSpaceIds = append(accessSpaceIds, spaceId)
-		}
-
-	}
-
-	var channelEntries []Entry
-
-	var contentAccessEntries []TblAccessControlPages
-
-	Accessmodel.GetAccessGrantedEntries(&contentAccessEntries, accessid, access.DB)
-
-	channelMap := make(map[int][]TblAccessControlPages)
-
-	for _, accessEntry := range contentAccessEntries {
-
-		chanEntry := Entry{Id: strconv.Itoa(accessEntry.EntryId), ChannelId: strconv.Itoa(accessEntry.ChannelId)}
-
-		channelEntries = append(channelEntries, chanEntry)
-
-		if _, exists := channelMap[accessEntry.ChannelId]; !exists {
-
-			channelMap[accessEntry.ChannelId] = []TblAccessControlPages{}
-
-		}
-
-		channelMap[accessEntry.ChannelId] = append(channelMap[accessEntry.ChannelId], accessEntry)
-
-	}
-
-	var channelIds []int
-
-	for channelId, entriesArr := range channelMap {
-
-		var entriesCountInChannel int64
-
-		Accessmodel.GetEntriesCountUnderChannel(&entriesCountInChannel, channelId, access.DB)
-
-		if int(entriesCountInChannel) == len(entriesArr) {
-
-			channelIds = append(channelIds, channelId)
-		}
-	}
-
-	return AccessControl, pages, subpages, pagegroups, accessGrantedMemgrps, accessSpaceIds, channelIds, channelEntries, nil
+	return *AccessControl, nil
 
 }
 
 /**/
-func (access *AccessControl) GetselectedPageAccessControl() {
+func (access *AccessControl) GetselectedPageByAccessControlId(accessid int) ([]Page, error) {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return []Page{}, autherr
+	}
+
+	contentAccessPages, err := Accessmodel.GetPagesAndPageGroupsInContentAccess(accessid, access.DB)
+
+	if err != nil {
+
+		log.Println(err)
+	}
+
+	var pages []Page
+
+	for _, val := range contentAccessPages {
+
+		var pg Page
+
+		pg.Id = strconv.Itoa(val.PageId)
+
+		pg.GroupId = strconv.Itoa(val.PageGroupId)
+
+		pg.SpaceId = strconv.Itoa(val.SpacesId)
+
+		pages = append(pages, pg)
+	}
+
+	return pages, nil
+}
+
+/**/
+func (access *AccessControl) GetselectedGroupByAccessControlId(accessid int) ([]PageGroup, error) {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return []PageGroup{}, autherr
+	}
+
+	contentAccessPages, err := Accessmodel.GetPageGroupsInContentAccess(accessid, access.DB)
+
+	if err != nil {
+
+		log.Println(err)
+	}
+
+	var group []PageGroup
+
+	for _, val := range contentAccessPages {
+
+		var pg PageGroup
+
+		pg.Id = strconv.Itoa(val.PageId)
+
+		pg.SpaceId = strconv.Itoa(val.SpacesId)
+
+		group = append(group, pg)
+	}
+
+	return group, nil
+}
+
+/**/
+func (access *AccessControl) GetselectedSubPageByAccessControlId(accessid int) ([]SubPage, error) {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return []SubPage{}, autherr
+	}
+
+	contentAccessPages, err := Accessmodel.GetPagesAndPageGroupsInContentAccess(accessid, access.DB)
+
+	if err != nil {
+
+		log.Println(err)
+	}
+
+	var pages []SubPage
+
+	for _, val := range contentAccessPages {
+
+		var pg SubPage
+
+		pg.Id = strconv.Itoa(val.PageId)
+
+		pg.GroupId = strconv.Itoa(val.PageGroupId)
+
+		pg.ParentId = strconv.Itoa(val.ParentPageId)
+
+		pg.SpaceId = strconv.Itoa(val.SpacesId)
+
+		pages = append(pages, pg)
+	}
+
+	return pages, nil
+}
+
+/**/
+func (access *AccessControl) GetselectedSpacesByAccessControlId(accessid int) ([]string, error) {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return []string{}, autherr
+	}
+
+	contentAccessPages, err := Accessmodel.GetSelectedSpaces(accessid, access.DB)
+
+	if err != nil {
+
+		log.Println(err)
+	}
+
+	var spaces []string
+
+	for _, val := range contentAccessPages {
+
+		spaces = append(spaces, strconv.Itoa(val.SpacesId))
+	}
+
+	return spaces, nil
+}
+
+/**/
+func (access *AccessControl) GetselectedChannelByAccessControlId(accessid int) ([]string, error) {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return []string{}, autherr
+	}
+
+	contentAccessPages, err := Accessmodel.GetSelectedSpaces(accessid, access.DB)
+
+	if err != nil {
+
+		log.Println(err)
+	}
+
+	var spaces []string
+
+	for _, val := range contentAccessPages {
+
+		spaces = append(spaces, strconv.Itoa(val.SpacesId))
+	}
+
+	return spaces, nil
+}
+
+/**/
+func (access *AccessControl) GetselectedEntiresByAccessControlId(accessid int) ([]string, error) {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return []string{}, autherr
+	}
+
+	contentAccessPages, err := Accessmodel.GetSelectedSpaces(accessid, access.DB)
+
+	if err != nil {
+
+		log.Println(err)
+	}
+
+	var spaces []string
+
+	for _, val := range contentAccessPages {
+
+		spaces = append(spaces, strconv.Itoa(val.SpacesId))
+	}
+
+	return spaces, nil
+}
+
+func (access *AccessControl) CreateRestrictPage(accessid int, ids []int) error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	return nil
+}
+
+func (access *AccessControl) CreateRestrictGroup() error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	return nil
+}
+
+func (access *AccessControl) CreateRestrictSubPage() error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	return nil
 
 }
 
+/**/
+func (access *AccessControl) DeleteSeletedPage() error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	return nil
+}
+
+func (access *AccessControl) DeleteSeletedGroup() error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	return nil
+}
+
+func (access *AccessControl) DeleteSelectedSpaces() error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	return nil
+}
