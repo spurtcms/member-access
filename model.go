@@ -174,8 +174,74 @@ func (AccessModel) GetSelectedEntries(accessId int, DB *gorm.DB) (contentAccessP
 	return contentAccessPages, nil
 }
 
-func (AccessModel) CreatePage(access TblAccessControlPages, accessId int, DB *gorm.DB) {
+func (AccessModel) CreateMemberGroupRestrict(access TblAccessControlUserGroup, DB *gorm.DB) (TblAccessControlUserGroup, error) {
 
-	// query := DB.Model(TblAccessControlPages{})
+	if err := DB.Model(TblAccessControlUserGroup{}).Create(&access).Error; err != nil {
+
+		return TblAccessControlUserGroup{}, err
+	}
+
+	return access, nil
+}
+
+func (AccessModel) CreatePage(access *TblAccessControlPages, DB *gorm.DB) error {
+
+	if err := DB.Model(TblAccessControlPages{}).Create(&access).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (AccessModel) DeletePage(pg_access *TblAccessControlPages, id []int, pgids []int, DB *gorm.DB) error {
+
+	if err := DB.Model(TblAccessControlPages{}).Where("access_control_user_group_id in (?) and page_id in (?)", id, pgids).UpdateColumns(map[string]interface{}{"is_deleted": pg_access.IsDeleted, "deleted_on": pg_access.DeletedOn, "deleted_by": pg_access.DeletedBy}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (AccessModel) DeleteGroup(pg_access *TblAccessControlPages, id []int, grpid []int, DB *gorm.DB) error {
+
+	if err := DB.Model(TblAccessControlPages{}).Where("access_control_user_group_id in (?) and page_group_id in (?)", id, grpid).UpdateColumns(map[string]interface{}{"is_deleted": pg_access.IsDeleted, "deleted_on": pg_access.DeletedOn, "deleted_by": pg_access.DeletedBy}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (AccessModel) DeleteSubPage(pg_access *TblAccessControlPages, id []int, spacesid []int, DB *gorm.DB) error {
+
+	if err := DB.Model(TblAccessControlPages{}).Where("access_control_user_group_id in (?) and spaces_id in (?)", id, spacesid).UpdateColumns(map[string]interface{}{"is_deleted": pg_access.IsDeleted, "deleted_on": pg_access.DeletedOn, "deleted_by": pg_access.DeletedBy}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (AccessModel) GetGroupsByAccessId(accessid int, DB *gorm.DB) (usergroups []TblAccessControlUserGroup, er error) {
+
+	if err := DB.Model(TblAccessControlUserGroup{}).Where("access_control_id=?", accessid).Find(usergroups).Error; err != nil {
+
+		return []TblAccessControlUserGroup{}, nil
+	}
+
+	return usergroups, nil
+}
+
+
+func (AccessModel) UpdateContentAccessId(contentAccess *TblAccessControl, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_controls").Where("is_deleted = 0 and id = ?", contentAccess.Id).UpdateColumns(map[string]interface{}{"access_control_name": contentAccess.AccessControlName, "access_control_slug": contentAccess.AccessControlSlug, "modified_on": contentAccess.ModifiedOn, "modified_by": contentAccess.ModifiedBy}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
 
 }

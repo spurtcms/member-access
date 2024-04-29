@@ -3,6 +3,7 @@ package memberaccess
 import (
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/spurtcms/member"
 )
@@ -293,7 +294,8 @@ func (access *AccessControl) GetselectedEntiresByAccessControlId(accessid int) (
 	return spaces, nil
 }
 
-func (access *AccessControl) CreateRestrictPage(accessid int, ids []int) error {
+
+func (access *AccessControl) CreateRestrictPage(accessid int, membergroups []int, ids []int, createdBy int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -302,10 +304,56 @@ func (access *AccessControl) CreateRestrictPage(accessid int, ids []int) error {
 		return autherr
 	}
 
+	var grps []TblAccessControlUserGroup
+
+	for _, val := range membergroups {
+
+		var membergrp TblAccessControlUserGroup
+
+		membergrp.AccessControlId = accessid
+
+		membergrp.MemberGroupId = val
+
+		membergrp.CreatedBy = createdBy
+
+		membergrp.CreatedOn = CurrentTime
+
+		acces, err := Accessmodel.CreateMemberGroupRestrict(membergrp, access.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+		grps = append(grps, acces)
+
+	}
+
+	for _, grp := range grps {
+
+		for _, val := range ids {
+
+			var page TblAccessControlPages
+
+			page.AccessControlUserGroupId = grp.Id
+
+			page.PageId = val
+
+			page.CreatedBy = createdBy
+
+			page.CreatedOn = CurrentTime
+
+			Accessmodel.CreatePage(&page, access.DB)
+
+		}
+
+	}
+
 	return nil
 }
 
-func (access *AccessControl) CreateRestrictGroup() error {
+
+func (access *AccessControl) CreateRestrictGroup(accessid int, membergroups []int, ids []int, createdBy int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -314,16 +362,106 @@ func (access *AccessControl) CreateRestrictGroup() error {
 		return autherr
 	}
 
+	var grps []TblAccessControlUserGroup
+
+	for _, val := range membergroups {
+
+		var membergrp TblAccessControlUserGroup
+
+		membergrp.AccessControlId = accessid
+
+		membergrp.MemberGroupId = val
+
+		membergrp.CreatedBy = createdBy
+
+		membergrp.CreatedOn = CurrentTime
+
+		acces, err := Accessmodel.CreateMemberGroupRestrict(membergrp, access.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+		grps = append(grps, acces)
+
+	}
+
+	for _, grp := range grps {
+
+		for _, val := range ids {
+
+			var page TblAccessControlPages
+
+			page.AccessControlUserGroupId = grp.Id
+
+			page.PageGroupId = val
+
+			page.CreatedBy = createdBy
+
+			page.CreatedOn = CurrentTime
+
+			Accessmodel.CreatePage(&page, access.DB)
+
+		}
+
+	}
+
 	return nil
 }
 
-func (access *AccessControl) CreateRestrictSubPage() error {
+func (access *AccessControl) CreateRestrictSubPage(accessid int, membergroups []int, ids []int, createdBy int) error {
 
 	autherr := AuthandPermission(access)
 
 	if autherr != nil {
 
 		return autherr
+	}
+
+	var grps []TblAccessControlUserGroup
+
+	for _, val := range membergroups {
+
+		var membergrp TblAccessControlUserGroup
+
+		membergrp.AccessControlId = accessid
+
+		membergrp.MemberGroupId = val
+
+		membergrp.CreatedBy = createdBy
+
+		membergrp.CreatedOn = CurrentTime
+
+		acces, err := Accessmodel.CreateMemberGroupRestrict(membergrp, access.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+		grps = append(grps, acces)
+
+	}
+
+	for _, grp := range grps {
+
+		for _, val := range ids {
+
+			var page TblAccessControlPages
+
+			page.AccessControlUserGroupId = grp.Id
+
+			page.PageId = val
+
+			page.CreatedBy = createdBy
+
+			page.CreatedOn = CurrentTime
+
+			Accessmodel.CreatePage(&page, access.DB)
+
+		}
+
 	}
 
 	return nil
@@ -331,7 +469,7 @@ func (access *AccessControl) CreateRestrictSubPage() error {
 }
 
 /**/
-func (access *AccessControl) DeleteSeletedPage() error {
+func (access *AccessControl) DeleteSeletedPage(accessid int, ids []int, DeletedBy int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -340,10 +478,40 @@ func (access *AccessControl) DeleteSeletedPage() error {
 		return autherr
 	}
 
+	var grpsid []int
+
+	grps, err := Accessmodel.GetGroupsByAccessId(accessid, access.DB)
+
+	if err != nil {
+
+		return err
+	}
+
+	for _, val := range grps {
+
+		grpsid = append(grpsid, val.Id)
+
+	}
+
+	var acc TblAccessControlPages
+
+	acc.IsDeleted = 0
+
+	acc.DeletedBy = DeletedBy
+
+	acc.DeletedOn = CurrentTime
+
+	er := Accessmodel.DeletePage(&acc, grpsid, ids, access.DB)
+
+	if er != nil {
+
+		return er
+	}
+
 	return nil
 }
 
-func (access *AccessControl) DeleteSeletedGroup() error {
+func (access *AccessControl) DeleteSeletedGroup(accessid int, ids []int, DeletedBy int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -352,16 +520,107 @@ func (access *AccessControl) DeleteSeletedGroup() error {
 		return autherr
 	}
 
+	var grpsid []int
+
+	grps, err := Accessmodel.GetGroupsByAccessId(accessid, access.DB)
+
+	if err != nil {
+
+		return err
+	}
+
+	for _, val := range grps {
+
+		grpsid = append(grpsid, val.Id)
+
+	}
+
+	var acc TblAccessControlPages
+
+	acc.IsDeleted = 0
+
+	acc.DeletedBy = DeletedBy
+
+	acc.DeletedOn = CurrentTime
+
+	er := Accessmodel.DeletePage(&acc, grpsid, ids, access.DB)
+
+	if er != nil {
+
+		return er
+	}
+
 	return nil
 }
 
-func (access *AccessControl) DeleteSelectedSpaces() error {
+func (access *AccessControl) DeleteSelectedSpaces(accessid int, ids []int, DeletedBy int) error {
 
 	autherr := AuthandPermission(access)
 
 	if autherr != nil {
 
 		return autherr
+	}
+
+	var grpsid []int
+
+	grps, err := Accessmodel.GetGroupsByAccessId(accessid, access.DB)
+
+	if err != nil {
+
+		return err
+	}
+
+	for _, val := range grps {
+
+		grpsid = append(grpsid, val.Id)
+
+	}
+
+	var acc TblAccessControlPages
+
+	acc.IsDeleted = 0
+
+	acc.DeletedBy = DeletedBy
+
+	acc.DeletedOn = CurrentTime
+
+	er := Accessmodel.DeletePage(&acc, grpsid, ids, access.DB)
+
+	if er != nil {
+
+		return er
+	}
+
+	return nil
+}
+
+func (access *AccessControl) UpdateAccessControl(accessid int, title string, ModifiedBy int) error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	var acc TblAccessControl
+
+	acc.Id = accessid
+
+	acc.AccessControlName = title
+
+	acc.AccessControlSlug = strings.ReplaceAll(strings.ToLower(title), " ", "-")
+
+	acc.ModifiedBy = ModifiedBy
+
+	acc.ModifiedOn = CurrentTime
+
+	err := Accessmodel.UpdateContentAccessId(&acc, access.DB)
+
+	if err != nil {
+
+		return err
 	}
 
 	return nil
