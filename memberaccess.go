@@ -625,3 +625,61 @@ func (access *AccessControl) UpdateAccessControl(accessid int, title string, Mod
 
 	return nil
 }
+
+// Create Accesscontrol
+func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int) error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	var acc TblAccessControl
+
+	acc.AccessControlName = title
+
+	acc.AccessControlSlug = strings.ReplaceAll(strings.ToLower(title), " ", "-")
+
+	acc.CreatedBy = ModifiedBy
+
+	acc.CreatedOn = CurrentTime
+
+	err := Accessmodel.NewContentAccessEntry(&acc, access.DB)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// Delete Accesscontrol
+func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy int) error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	var acc TblAccessControl
+
+	acc.DeletedBy = ModifiedBy
+
+	acc.DeletedOn = CurrentTime
+
+	acc.IsDeleted = 1
+
+	err := Accessmodel.DeleteControlAccess(&acc,accessid, access.DB)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+}

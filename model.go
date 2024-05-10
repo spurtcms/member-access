@@ -245,3 +245,25 @@ func (AccessModel) UpdateContentAccessId(contentAccess *TblAccessControl, DB *go
 	return nil
 
 }
+
+/*Create Access*/
+func (AccessModel) NewContentAccessEntry(contentAccess *TblAccessControl, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_controls").Create(&contentAccess).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// Delete Access Control tbl
+func (AccessModel) DeleteControlAccess(accesscontrol *TblAccessControl, id int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_controls").Where("id = ?", id).UpdateColumns(map[string]interface{}{"deleted_by": accesscontrol.DeletedBy, "deleted_on": accesscontrol.DeletedOn, "is_deleted": accesscontrol.IsDeleted}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
