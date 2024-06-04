@@ -4,6 +4,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spurtcms/member"
 )
@@ -268,32 +269,55 @@ func (access *AccessControl) GetselectedChannelByAccessControlId(accessid int) (
 }
 
 /**/
-func (access *AccessControl) GetselectedEntiresByAccessControlId(accessid int) ([]string, error) {
+func (access *AccessControl) GetselectedEntiresByAccessControlId(accessid int) ([]int, []Entry, error) {
 
 	autherr := AuthandPermission(access)
 
 	if autherr != nil {
 
-		return []string{}, autherr
+		return []int{}, []Entry{}, autherr
 	}
 
-	contentAccessPages, err := Accessmodel.GetSelectedSpaces(accessid, access.DB)
+	var channelEntries []Entry
 
-	if err != nil {
+	var contentAccessEntries []TblAccessControlPages
 
-		log.Println(err)
+	Accessmodel.GetAccessGrantedEntries(&contentAccessEntries, accessid, access.DB)
+
+	channelMap := make(map[int][]TblAccessControlPages)
+
+	for _, accessEntry := range contentAccessEntries {
+
+		chanEntry := Entry{Id: strconv.Itoa(accessEntry.EntryId), ChannelId: strconv.Itoa(accessEntry.ChannelId)}
+
+		channelEntries = append(channelEntries, chanEntry)
+
+		if _, exists := channelMap[accessEntry.ChannelId]; !exists {
+
+			channelMap[accessEntry.ChannelId] = []TblAccessControlPages{}
+
+		}
+
+		channelMap[accessEntry.ChannelId] = append(channelMap[accessEntry.ChannelId], accessEntry)
+
 	}
 
-	var spaces []string
+	var channelIds []int
 
-	for _, val := range contentAccessPages {
+	for channelId, entriesArr := range channelMap {
 
-		spaces = append(spaces, strconv.Itoa(val.SpacesId))
+		var entriesCountInChannel int64
+
+		Accessmodel.GetEntriesCountUnderChannel(&entriesCountInChannel, channelId, access.DB)
+
+		if int(entriesCountInChannel) == len(entriesArr) {
+
+			channelIds = append(channelIds, channelId)
+		}
 	}
 
-	return spaces, nil
+	return channelIds, channelEntries, nil
 }
-
 
 func (access *AccessControl) CreateRestrictPage(accessid int, membergroups []int, ids []int, createdBy int) error {
 
@@ -351,7 +375,6 @@ func (access *AccessControl) CreateRestrictPage(accessid int, membergroups []int
 
 	return nil
 }
-
 
 func (access *AccessControl) CreateRestrictGroup(accessid int, membergroups []int, ids []int, createdBy int) error {
 
@@ -627,13 +650,13 @@ func (access *AccessControl) UpdateAccessControl(accessid int, title string, Mod
 }
 
 // Create Accesscontrol
-func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int) error {
+func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int) (accessdata TblAccessControl, aerr error) {
 
 	autherr := AuthandPermission(access)
 
 	if autherr != nil {
 
-		return autherr
+		return accessdata, autherr
 	}
 
 	var acc TblAccessControl
@@ -650,10 +673,10 @@ func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int) e
 
 	if err != nil {
 
-		return err
+		return TblAccessControl{}, err
 	}
 
-	return nil
+	return acc, nil
 }
 
 // Delete Accesscontrol
@@ -666,19 +689,295 @@ func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy 
 		return autherr
 	}
 
-	var acc TblAccessControl
+	var accesscontrol TblAccessControl
 
-	acc.DeletedBy = ModifiedBy
+	accesscontrol.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	acc.DeletedOn = CurrentTime
+	accesscontrol.DeletedBy = ModifiedBy
 
-	acc.IsDeleted = 1
+	accesscontrol.IsDeleted = 1
 
-	err := Accessmodel.DeleteControlAccess(&acc,accessid, access.DB)
+	err := Accessmodel.DeleteControlAccess(&accesscontrol, accessid, access.DB)
+
+	var acusergrp TblAccessControlUserGroup
+
+	acusergrp.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	acusergrp.DeletedBy = ModifiedBy
+
+	acusergrp.IsDeleted = 1
+
+	Accessmodel.DeleteInAccessUserGroup(&acusergrp, accessid, access.DB)
+
+	var accessgrp []TblAccessControlUserGroup
+
+	Accessmodel.GetDeleteIdInAccessUserGroup(&accessgrp, accessid, access.DB)
+
+	var pgid []int
+
+	for _, v := range accessgrp {
+
+		pgid = append(pgid, v.Id)
+
+	}
+
+	var accesscontrolpg TblAccessControlPages
+
+	accesscontrolpg.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	accesscontrolpg.DeletedBy = ModifiedBy
+
+	accesscontrolpg.IsDeleted = 1
+
+	Accessmodel.DeleteAccessControlPages(&accesscontrolpg, pgid, access.DB)
 
 	if err != nil {
 
 		return err
+
+	}
+
+	return nil
+}
+
+func (access *AccessControl) CreateRestrictEntries(accessid int, membergroups []int, entryids []Entry, createdBy int) error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	var grps []TblAccessControlUserGroup
+
+	for _, val := range membergroups {
+
+		var membergrp TblAccessControlUserGroup
+
+		membergrp.AccessControlId = accessid
+
+		membergrp.MemberGroupId = val
+
+		membergrp.CreatedBy = createdBy
+
+		membergrp.CreatedOn = CurrentTime
+
+		acces, err := Accessmodel.CreateMemberGroupRestrict(membergrp, access.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+		grps = append(grps, acces)
+
+	}
+
+	for _, grp := range grps {
+
+		for _, val := range entryids {
+
+			var page TblAccessControlPages
+
+			page.AccessControlUserGroupId = grp.Id
+
+			page.ChannelId, _ = strconv.Atoi(val.ChannelId)
+
+			page.EntryId, _ = strconv.Atoi(val.Id)
+
+			page.CreatedBy = createdBy
+
+			page.CreatedOn = CurrentTime
+
+			Accessmodel.CreatePage(&page, access.DB)
+
+		}
+
+	}
+
+	return nil
+}
+
+func (access *AccessControl) GetaccessMemberGroup(accessid int) (group []int, err error) {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return []int{}, autherr
+	}
+	var accessGrantedMemgrps []int
+
+	gerr := Accessmodel.GetAccessGrantedMemberGroupsList(&accessGrantedMemgrps, accessid, access.DB)
+
+	if gerr != nil {
+
+		return []int{}, gerr
+	}
+	return accessGrantedMemgrps, nil
+}
+
+func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []int, entryids []Entry, userid int) error {
+
+	autherr := AuthandPermission(access)
+
+	if autherr != nil {
+
+		return autherr
+	}
+
+	for _, memgrp_id := range membergroups {
+
+		var access_count int64
+
+		err := Accessmodel.CheckPresenceOfAccessGrantedMemberGroups(&access_count, memgrp_id, accessid, access.DB)
+
+		if err != nil {
+
+			log.Println(err)
+
+		}
+
+		var memberGrpAccess TblAccessControlUserGroup
+
+		memberGrpAccess.AccessControlId = accessid
+
+		memberGrpAccess.MemberGroupId = memgrp_id
+
+		if access_count == 0 {
+
+			memberGrpAccess.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			memberGrpAccess.CreatedBy = userid
+
+			memberGrpAccess.IsDeleted = 0
+
+			err = Accessmodel.GrantAccessToMemberGroups(&memberGrpAccess, access.DB)
+
+			if err != nil {
+
+				log.Println(err)
+
+			}
+
+		} else if access_count == 1 {
+
+			memberGrpAccess.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			memberGrpAccess.ModifiedBy = userid
+
+			err = Accessmodel.UpdateContentAccessMemberGroup(&memberGrpAccess, access.DB)
+
+			if err != nil {
+
+				log.Println(err)
+
+			}
+
+		}
+
+	}
+	var MemGrpAccess []TblAccessControlUserGroup
+
+	Accessmodel.GetMemberGrpByAccessControlId(&MemGrpAccess, accessid, access.DB)
+
+	var entryIds []int
+
+	seen_entry := make(map[int]bool)
+
+	for _, memgrp := range MemGrpAccess {
+		for _, entry := range entryids {
+
+			chanId, _ := strconv.Atoi(entry.ChannelId)
+
+			entryId, _ := strconv.Atoi(entry.Id)
+
+			var entryCount int64
+
+			err := Accessmodel.CheckPresenceOfChannelEntriesInContentAccess(&entryCount, memgrp.Id, chanId, entryId, access.DB)
+
+			if err != nil {
+
+				log.Println(err)
+			}
+
+			var channelAccess TblAccessControlPages
+
+			channelAccess.AccessControlUserGroupId = memgrp.Id
+
+			channelAccess.ChannelId = chanId
+
+			channelAccess.EntryId = entryId
+
+			if entryCount == 0 {
+
+				channelAccess.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				channelAccess.CreatedBy = userid
+
+				channelAccess.IsDeleted = 0
+
+				err = Accessmodel.CreatePage(&channelAccess, access.DB)
+
+				if err != nil {
+
+					log.Println(err)
+				}
+
+			} else if entryCount == 1 {
+
+				channelAccess.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				channelAccess.ModifiedBy = userid
+
+				err = Accessmodel.UpdateAccessPage(&channelAccess, access.DB)
+
+				if err != nil {
+
+					log.Println(err)
+				}
+
+			}
+
+			if !seen_entry[entryId] {
+
+				entryIds = append(entryIds, entryId)
+
+				seen_entry[entryId] = true
+
+			}
+		}
+	}
+	var memgrp_access1 TblAccessControlUserGroup
+
+	memgrp_access1.IsDeleted = 1
+
+	memgrp_access1.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	memgrp_access1.DeletedBy = userid
+
+	Accessmodel.RemoveMemberGroupsNotUnderContentAccessRights(&memgrp_access1, membergroups, accessid, access.DB)
+
+	for _, memgrp := range MemGrpAccess {
+
+		var pg_access1 TblAccessControlPages
+
+		pg_access1.AccessControlUserGroupId = memgrp.Id
+
+		pg_access1.IsDeleted = 1
+
+		pg_access1.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		pg_access1.DeletedBy = userid
+
+		err := Accessmodel.RemoveChannelEntriesNotUnderContentAccess(&pg_access1, entryIds, access.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
 	}
 
 	return nil

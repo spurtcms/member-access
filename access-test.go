@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func main() {
+func Testing() {
 
 	Auth := auth.AuthSetup(auth.Config{
 		UserId:     1,
@@ -36,7 +36,7 @@ func main() {
 		fmt.Println(contentaccesslist, count, err)
 
 		//create contentaccess
-		cerr := accesscontroller.CreateAccessControl("Demo Entries Access", 1)
+		_, cerr := accesscontroller.CreateAccessControl("Demo Entries Access", 1)
 
 		if cerr != nil {
 

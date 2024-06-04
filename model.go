@@ -267,3 +267,176 @@ func (AccessModel) DeleteControlAccess(accesscontrol *TblAccessControl, id int, 
 
 	return nil
 }
+
+// get access membergroup
+func (AccessModel) GetAccessGrantedMemberGroupsList(memgrps *[]int, accessId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_member_groups").Select("tbl_member_groups.id").
+		Joins("left join tbl_access_control_user_groups on tbl_access_control_user_groups.member_group_id =  tbl_member_groups.id and tbl_access_control_user_groups.is_deleted = 0 ").
+		Where("tbl_member_groups.is_deleted = 0 and tbl_access_control_user_groups.access_control_id = ?", accessId).Find(&memgrps).Error; err != nil {
+
+		return err
+
+	}
+
+	return nil
+
+}
+
+func (AccessModel) GetAccessGrantedEntries(AccessEntries *[]TblAccessControlPages, accessId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_pages").Select("distinct on (tbl_access_control_pages.entry_id) tbl_access_control_pages.*").
+		Joins("inner join tbl_access_control_user_groups on tbl_access_control_user_groups.id = tbl_access_control_pages.access_control_user_group_id").
+		Joins("inner join tbl_access_controls on tbl_access_controls.id = tbl_access_control_user_groups.access_control_id").
+		Where("tbl_access_controls.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0 and tbl_access_controls.id = ? and tbl_access_control_pages.entry_id!= 0", accessId).Find(&AccessEntries).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (AccessModel) GetEntriesCountUnderChannel(count *int64, channelId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_channel_entries").Where("is_deleted = 0 and status = 1 and channel_id = ?", channelId).Count(count).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// check membergroup access
+func (AccessModel) CheckPresenceOfAccessGrantedMemberGroups(count *int64, mem_id, accessId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_user_groups").Where("is_deleted = 0 and member_group_id = ? and access_control_id = ?", mem_id, accessId).Count(count).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// create member group access
+func (AccessModel) GrantAccessToMemberGroups(memberGrpAccess *TblAccessControlUserGroup, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_user_groups").Create(&memberGrpAccess).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// update membergroup access
+func (AccessModel) UpdateContentAccessMemberGroup(accessmemgrp *TblAccessControlUserGroup, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_user_groups").Where("is_deleted = 0 and access_control_id = ? and member_group_id = ?", accessmemgrp.AccessControlId, accessmemgrp.MemberGroupId).UpdateColumns(map[string]interface{}{"modified_on": accessmemgrp.ModifiedOn, "modified_by": accessmemgrp.ModifiedBy}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+// get member groupby acessid
+func (AccessModel) GetMemberGrpByAccessControlId(memberGrpAccess *[]TblAccessControlUserGroup, content_access_id int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_user_groups").Where("is_deleted = 0 and access_control_id = ?", content_access_id).Find(&memberGrpAccess).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
+}
+// check access for enteries
+func (AccessModel) CheckPresenceOfChannelEntriesInContentAccess(count *int64, accessGroupId, chanId, entryId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_pages").Where("is_deleted = 0 and access_control_user_group_id = ? and channel_id = ? and entry_id = ?", accessGroupId, chanId, entryId).Count(count).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
+}
+// update accesspage
+func (AccessModel) UpdateAccessPage(chanAccess *TblAccessControlPages, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_pages").Where("is_deleted = 0 and access_control_user_group_id = ? and channel_id = ? and entry_id = ?", chanAccess.AccessControlUserGroupId, chanAccess.ChannelId, chanAccess.EntryId).UpdateColumns(map[string]interface{}{"modified_on": chanAccess.ModifiedOn, "modified_by": chanAccess.ModifiedBy}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+// remove membergroup access
+func (AccessModel) RemoveMemberGroupsNotUnderContentAccessRights(memgrp_access *TblAccessControlUserGroup, memgrp_array []int, access_id int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Exec(`
+		WITH updated_user_groups AS (
+			UPDATE tbl_access_control_user_groups
+			SET is_deleted = (?),
+			deleted_by = (?),
+			deleted_on = (?)
+			WHERE tbl_access_control_user_groups.IS_DELETED =0 and tbl_access_control_user_groups.access_control_id=? and tbl_access_control_user_groups.member_group_id not in(?)
+			RETURNING id
+		)
+		UPDATE tbl_access_control_pages
+		SET is_deleted = (?),
+		deleted_by = (?),
+		deleted_on = (?)
+		FROM updated_user_groups
+		WHERE tbl_access_control_pages.access_control_user_group_id = (
+			SELECT id
+			FROM tbl_access_control_user_groups
+			WHERE tbl_access_control_user_groups.id = updated_user_groups.id
+		)`, memgrp_access.IsDeleted, memgrp_access.DeletedBy, memgrp_access.DeletedOn, access_id, memgrp_array, memgrp_access.IsDeleted, memgrp_access.DeletedBy, memgrp_access.DeletedOn).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+// remove access for entries
+func (AccessModel) RemoveChannelEntriesNotUnderContentAccess(chanAccess *TblAccessControlPages, entryIds []int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Table("tbl_access_control_pages").Where("is_deleted = 0 and access_control_user_group_id = ? and entry_id != 0 and entry_id NOT IN (?)", chanAccess.AccessControlUserGroupId, entryIds).UpdateColumns(map[string]interface{}{"is_deleted": chanAccess.IsDeleted, "deleted_on": chanAccess.DeletedOn, "deleted_by": chanAccess.DeletedBy}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// Delete Access Control User Group tbl
+func (AccessModel) DeleteInAccessUserGroup(accessusergrp *TblAccessControlUserGroup, Id int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_user_groups").Where("access_control_id = ?", Id).UpdateColumns(map[string]interface{}{"deleted_by": accessusergrp.DeletedBy, "deleted_on": accessusergrp.DeletedOn, "is_deleted": accessusergrp.IsDeleted}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// To Get Deleted id in access control user group tbl
+func (AccessModel) GetDeleteIdInAccessUserGroup(controlaccessgrp *[]TblAccessControlUserGroup, Id int, DB *gorm.DB) (*[]TblAccessControlUserGroup, error) {
+
+	if err := DB.Table("tbl_access_control_user_groups").Where("access_control_id = ?", Id).Find(&controlaccessgrp).Error; err != nil {
+
+		return &[]TblAccessControlUserGroup{}, err
+	}
+
+	return controlaccessgrp, nil
+}
+
+// Delete Access Control Pages tbl
+func (AccessModel) DeleteAccessControlPages(pg_access *TblAccessControlPages, Id []int, DB *gorm.DB) error {
+	if err := DB.Table("tbl_access_control_pages").Where("access_control_user_group_id IN ?", Id).UpdateColumns(map[string]interface{}{"deleted_by": pg_access.DeletedBy, "deleted_on": pg_access.DeletedOn, "is_deleted": pg_access.IsDeleted}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
