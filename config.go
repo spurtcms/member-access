@@ -17,4 +17,6 @@ type AccessControl struct {
 	AuthEnable       bool
 	PermissionEnable bool
 	Auth             *auth.Auth
+	UserId           int
+	DataAccess       int
 }

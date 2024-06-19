@@ -132,6 +132,9 @@ type MemberAccessControlRequired struct {
 	MemberGroupIds []int
 }
 
-type AccessModel struct{}
+type AccessModel struct {
+	DataAccess int
+	UserId     int
+}
 
 var Accessmodel AccessModel

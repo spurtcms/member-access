@@ -30,6 +30,9 @@ func (access *AccessControl) ContentAccessList(limit int, offset int, filter Fil
 		return []Tblaccesscontrol{}, 0, autherr
 	}
 
+	Accessmodel.DataAccess = access.DataAccess
+	Accessmodel.UserId = access.UserId
+
 	contentAccessList, _, errr := Accessmodel.GetContentAccessList(limit, offset, filter, access.DB)
 
 	if errr != nil {

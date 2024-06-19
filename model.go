@@ -6,13 +6,18 @@ import (
 )
 
 // Get all content access list
-func (AccessModel) GetContentAccessList(limit, offset int, filter Filter, DB *gorm.DB) (contentAccessList []Tblaccesscontrol, count int64, err error) {
+func (AccessM AccessModel) GetContentAccessList(limit, offset int, filter Filter, DB *gorm.DB) (contentAccessList []Tblaccesscontrol, count int64, err error) {
 
 	query := DB.Table("tbl_access_controls").Select("tbl_access_controls.*,tbl_users.username,tbl_roles.name").Where("tbl_access_controls.is_deleted = 0").Order("tbl_access_controls.id DESC")
 
 	//joins
 	query = query.Joins("left join tbl_users on tbl_users.id = tbl_access_controls.created_by")
 	query = query.Joins("left join tbl_roles on tbl_roles.id = tbl_users.role_id")
+
+	if AccessM.DataAccess == 1 {
+
+		query = query.Where("tbl_access_controls.created_by = ?", AccessM.UserId)
+	}
 
 	if filter.Keyword != "" {
 
@@ -234,7 +239,6 @@ func (AccessModel) GetGroupsByAccessId(accessid int, DB *gorm.DB) (usergroups []
 	return usergroups, nil
 }
 
-
 func (AccessModel) UpdateContentAccessId(contentAccess *TblAccessControl, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_access_controls").Where("is_deleted = 0 and id = ?", contentAccess.Id).UpdateColumns(map[string]interface{}{"access_control_name": contentAccess.AccessControlName, "access_control_slug": contentAccess.AccessControlSlug, "modified_on": contentAccess.ModifiedOn, "modified_by": contentAccess.ModifiedBy}).Error; err != nil {
@@ -285,7 +289,7 @@ func (AccessModel) GetAccessGrantedMemberGroupsList(memgrps *[]int, accessId int
 
 func (AccessModel) GetAccessGrantedEntries(AccessEntries *[]TblAccessControlPages, accessId int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_access_control_pages").Select("distinct on (tbl_access_control_pages.entry_id) tbl_access_control_pages.*").
+	if err := DB.Table("tbl_access_control_pages").Select("distinct on (tbl_access_control_pages.entry_id),tbl_access_control_pages.*").
 		Joins("inner join tbl_access_control_user_groups on tbl_access_control_user_groups.id = tbl_access_control_pages.access_control_user_group_id").
 		Joins("inner join tbl_access_controls on tbl_access_controls.id = tbl_access_control_user_groups.access_control_id").
 		Where("tbl_access_controls.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0 and tbl_access_controls.id = ? and tbl_access_control_pages.entry_id!= 0", accessId).Find(&AccessEntries).Error; err != nil {
@@ -338,6 +342,7 @@ func (AccessModel) UpdateContentAccessMemberGroup(accessmemgrp *TblAccessControl
 
 	return nil
 }
+
 // get member groupby acessid
 func (AccessModel) GetMemberGrpByAccessControlId(memberGrpAccess *[]TblAccessControlUserGroup, content_access_id int, DB *gorm.DB) error {
 
@@ -349,6 +354,7 @@ func (AccessModel) GetMemberGrpByAccessControlId(memberGrpAccess *[]TblAccessCon
 	return nil
 
 }
+
 // check access for enteries
 func (AccessModel) CheckPresenceOfChannelEntriesInContentAccess(count *int64, accessGroupId, chanId, entryId int, DB *gorm.DB) error {
 
@@ -360,6 +366,7 @@ func (AccessModel) CheckPresenceOfChannelEntriesInContentAccess(count *int64, ac
 	return nil
 
 }
+
 // update accesspage
 func (AccessModel) UpdateAccessPage(chanAccess *TblAccessControlPages, DB *gorm.DB) error {
 
@@ -370,6 +377,7 @@ func (AccessModel) UpdateAccessPage(chanAccess *TblAccessControlPages, DB *gorm.
 
 	return nil
 }
+
 // remove membergroup access
 func (AccessModel) RemoveMemberGroupsNotUnderContentAccessRights(memgrp_access *TblAccessControlUserGroup, memgrp_array []int, access_id int, DB *gorm.DB) error {
 
@@ -398,6 +406,7 @@ func (AccessModel) RemoveMemberGroupsNotUnderContentAccessRights(memgrp_access *
 
 	return nil
 }
+
 // remove access for entries
 func (AccessModel) RemoveChannelEntriesNotUnderContentAccess(chanAccess *TblAccessControlPages, entryIds []int, DB *gorm.DB) error {
 
