@@ -19,7 +19,7 @@ func Testing() {
 
 	Auth.VerifyToken(token, "Secret123")
 
-	permisison, _ := Auth.IsGranted("Member Restrict", auth.CRUD)
+	permisison, _ := Auth.IsGranted("Member Restrict", auth.CRUD, TenantId)
 
 	accesscontroller := AccessSetup(Config{
 		DB:               &gorm.DB{},
@@ -32,11 +32,11 @@ func Testing() {
 	if permisison {
 
 		//list contentaccess
-		contentaccesslist, count, err := accesscontroller.ContentAccessList(10, 0, Filter{})
+		contentaccesslist, count, err := accesscontroller.ContentAccessList(10, 0, Filter{}, TenantId)
 		fmt.Println(contentaccesslist, count, err)
 
 		//create contentaccess
-		_, cerr := accesscontroller.CreateAccessControl("Demo Entries Access", 1)
+		_, cerr := accesscontroller.CreateAccessControl("Demo Entries Access", 1, 1)
 
 		if cerr != nil {
 
@@ -44,7 +44,7 @@ func Testing() {
 		}
 
 		// update contentaccess
-		uerr := accesscontroller.UpdateAccessControl(1, "Entries Access", 1)
+		uerr := accesscontroller.UpdateAccessControl(1, "Entries Access", 1, 1)
 
 		if uerr != nil {
 
@@ -52,7 +52,7 @@ func Testing() {
 		}
 
 		// delete contentaccess
-		derr := accesscontroller.DeleteMemberAccessControl(2, 1)
+		derr := accesscontroller.DeleteMemberAccessControl(2, 1, 1)
 
 		if derr != nil {
 
@@ -60,11 +60,11 @@ func Testing() {
 		}
 
 		// list selectedpage
-		pagelist, lerr := accesscontroller.GetselectedPageByAccessControlId(1)
+		pagelist, lerr := accesscontroller.GetselectedPageByAccessControlId(1, 1)
 		fmt.Println(pagelist, lerr)
 
 		// create restrictgroup
-		gerr := accesscontroller.CreateRestrictGroup(1, []int{1, 2}, []int{1, 2, 3}, 1)
+		gerr := accesscontroller.CreateRestrictGroup(1, []int{1, 2}, []int{1, 2, 3}, 1, TenantId)
 
 		if gerr != nil {
 

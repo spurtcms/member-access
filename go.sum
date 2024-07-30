@@ -16,6 +16,8 @@ github.com/mattn/go-sqlite3 v1.14.15 h1:vfoHhTN1af61xCRSWzFIWzx2YskyMTwHLrExkBOj
 github.com/microsoft/go-mssqldb v0.17.0 h1:Fto83dMZPnYv1Zwx5vHHxpNraeEaUlQ/hhHLgZiaenE=
 github.com/spurtcms/auth v0.0.0-20240422143037-2687a406bba1 h1:6M/Y3cycWMYaZK1nA+kCMsxoMmYNVynRRpM1gcVSk9o=
 github.com/spurtcms/auth v0.0.0-20240422143037-2687a406bba1/go.mod h1:R/BQhE+PUZ/eGTgS23lv62uWkzfu/NzVWHxibC6yu1g=
+github.com/spurtcms/auth v0.0.12 h1:tJIhH/YOdHYEnzMK1HsnmttgZpXZfcLi36Pnbi/QMXk=
+github.com/spurtcms/auth v0.0.12/go.mod h1:1u46UkHWHcsN99jNGCaei0/75rslezIpOGITEhVkvAM=
 github.com/spurtcms/member v0.0.0-20240404121904-b393756a414f h1:z1hJ2TpZv0ClMqfy46aTIWMVnP1lDgLaTR5QzMt5aWA=
 github.com/spurtcms/member v0.0.0-20240404121904-b393756a414f/go.mod h1:nAZ7M+buGaygvEuBNS5kx+NKe718Qqi7qWLOmrt47cE=
 golang.org/x/crypto v0.21.0 h1:X31++rzVUdKhX5sWmSOFZxx8UW/ldWx55cbf08iNAMA=

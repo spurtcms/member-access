@@ -21,7 +21,7 @@ func AccessSetup(config Config) *AccessControl {
 }
 
 /*List */
-func (access *AccessControl) ContentAccessList(limit int, offset int, filter Filter) (accesslist []Tblaccesscontrol, totalCount int64, err error) {
+func (access *AccessControl) ContentAccessList(limit int, offset int, filter Filter, tenantid int) (accesslist []Tblaccesscontrol, totalCount int64, err error) {
 
 	autherr := AuthandPermission(access)
 
@@ -33,7 +33,7 @@ func (access *AccessControl) ContentAccessList(limit int, offset int, filter Fil
 	Accessmodel.DataAccess = access.DataAccess
 	Accessmodel.UserId = access.UserId
 
-	contentAccessList, _, errr := Accessmodel.GetContentAccessList(limit, offset, filter, access.DB)
+	contentAccessList, _, errr := Accessmodel.GetContentAccessList(limit, offset, filter, access.DB, tenantid)
 
 	if errr != nil {
 
@@ -46,7 +46,7 @@ func (access *AccessControl) ContentAccessList(limit int, offset int, filter Fil
 
 		var access_grant_memgrps []TblAccessControlUserGroup
 
-		Accessmodel.GetAccessGrantedMemberGroups(&access_grant_memgrps, contentAccess.Id, access.DB)
+		Accessmodel.GetAccessGrantedMemberGroups(&access_grant_memgrps, contentAccess.Id, access.DB, tenantid)
 
 		for _, memgrp := range access_grant_memgrps {
 
@@ -54,7 +54,7 @@ func (access *AccessControl) ContentAccessList(limit int, offset int, filter Fil
 
 				var memberGroup member.TblMemberGroup
 
-				Accessmodel.GetMemberGroupsByContentAccessMemId(&memberGroup, memgrp.MemberGroupId, access.DB)
+				Accessmodel.GetMemberGroupsByContentAccessMemId(&memberGroup, memgrp.MemberGroupId, access.DB, tenantid)
 
 				contentAccess.MemberGroups = append(contentAccess.MemberGroups, memberGroup)
 			}
@@ -62,9 +62,9 @@ func (access *AccessControl) ContentAccessList(limit int, offset int, filter Fil
 
 		var entriesCount, pageCount int64
 
-		Accessmodel.GetaccessGrantedEntriesCount(&entriesCount, contentAccess.Id, access.DB)
+		Accessmodel.GetaccessGrantedEntriesCount(&entriesCount, contentAccess.Id, access.DB, tenantid)
 
-		Accessmodel.GetaccessGrantedPageCount(&pageCount, contentAccess.Id, access.DB)
+		Accessmodel.GetaccessGrantedPageCount(&pageCount, contentAccess.Id, access.DB, tenantid)
 
 		if entriesCount > 0 {
 
@@ -90,14 +90,14 @@ func (access *AccessControl) ContentAccessList(limit int, offset int, filter Fil
 
 	}
 
-	_, content_access_count, _ := Accessmodel.GetContentAccessList(0, 0, filter, access.DB)
+	_, content_access_count, _ := Accessmodel.GetContentAccessList(0, 0, filter, access.DB, tenantid)
 
 	return final_content_accesslist, content_access_count, nil
 
 }
 
 /*Get Access by id*/
-func (access *AccessControl) GetControlAccessById(accessid int) (accesslist Tblaccesscontrol, err error) {
+func (access *AccessControl) GetControlAccessById(accessid int, tenantid int) (accesslist Tblaccesscontrol, err error) {
 
 	autherr := AuthandPermission(access)
 
@@ -106,14 +106,14 @@ func (access *AccessControl) GetControlAccessById(accessid int) (accesslist Tbla
 		return Tblaccesscontrol{}, autherr
 	}
 
-	AccessControl, _ := Accessmodel.GetContentAccessByAccessId(accessid, access.DB)
+	AccessControl, _ := Accessmodel.GetContentAccessByAccessId(accessid, access.DB, tenantid)
 
 	return *AccessControl, nil
 
 }
 
 /**/
-func (access *AccessControl) GetselectedPageByAccessControlId(accessid int) ([]Page, error) {
+func (access *AccessControl) GetselectedPageByAccessControlId(accessid int, tenantid int) ([]Page, error) {
 
 	autherr := AuthandPermission(access)
 
@@ -122,7 +122,7 @@ func (access *AccessControl) GetselectedPageByAccessControlId(accessid int) ([]P
 		return []Page{}, autherr
 	}
 
-	contentAccessPages, err := Accessmodel.GetPagesAndPageGroupsInContentAccess(accessid, access.DB)
+	contentAccessPages, err := Accessmodel.GetPagesAndPageGroupsInContentAccess(accessid, access.DB, tenantid)
 
 	if err != nil {
 
@@ -148,7 +148,7 @@ func (access *AccessControl) GetselectedPageByAccessControlId(accessid int) ([]P
 }
 
 /**/
-func (access *AccessControl) GetselectedGroupByAccessControlId(accessid int) ([]PageGroup, error) {
+func (access *AccessControl) GetselectedGroupByAccessControlId(accessid int, tenantid int) ([]PageGroup, error) {
 
 	autherr := AuthandPermission(access)
 
@@ -157,7 +157,7 @@ func (access *AccessControl) GetselectedGroupByAccessControlId(accessid int) ([]
 		return []PageGroup{}, autherr
 	}
 
-	contentAccessPages, err := Accessmodel.GetPageGroupsInContentAccess(accessid, access.DB)
+	contentAccessPages, err := Accessmodel.GetPageGroupsInContentAccess(accessid, access.DB, tenantid)
 
 	if err != nil {
 
@@ -181,7 +181,7 @@ func (access *AccessControl) GetselectedGroupByAccessControlId(accessid int) ([]
 }
 
 /**/
-func (access *AccessControl) GetselectedSubPageByAccessControlId(accessid int) ([]SubPage, error) {
+func (access *AccessControl) GetselectedSubPageByAccessControlId(accessid int, tenantid int) ([]SubPage, error) {
 
 	autherr := AuthandPermission(access)
 
@@ -190,7 +190,7 @@ func (access *AccessControl) GetselectedSubPageByAccessControlId(accessid int) (
 		return []SubPage{}, autherr
 	}
 
-	contentAccessPages, err := Accessmodel.GetPagesAndPageGroupsInContentAccess(accessid, access.DB)
+	contentAccessPages, err := Accessmodel.GetPagesAndPageGroupsInContentAccess(accessid, access.DB, tenantid)
 
 	if err != nil {
 
@@ -218,7 +218,7 @@ func (access *AccessControl) GetselectedSubPageByAccessControlId(accessid int) (
 }
 
 /**/
-func (access *AccessControl) GetselectedSpacesByAccessControlId(accessid int) ([]string, error) {
+func (access *AccessControl) GetselectedSpacesByAccessControlId(accessid int, tenantid int) ([]string, error) {
 
 	autherr := AuthandPermission(access)
 
@@ -227,7 +227,7 @@ func (access *AccessControl) GetselectedSpacesByAccessControlId(accessid int) ([
 		return []string{}, autherr
 	}
 
-	contentAccessPages, err := Accessmodel.GetSelectedSpaces(accessid, access.DB)
+	contentAccessPages, err := Accessmodel.GetSelectedSpaces(accessid, access.DB, tenantid)
 
 	if err != nil {
 
@@ -245,7 +245,7 @@ func (access *AccessControl) GetselectedSpacesByAccessControlId(accessid int) ([
 }
 
 /**/
-func (access *AccessControl) GetselectedChannelByAccessControlId(accessid int) ([]string, error) {
+func (access *AccessControl) GetselectedChannelByAccessControlId(accessid int, tenantid int) ([]string, error) {
 
 	autherr := AuthandPermission(access)
 
@@ -254,7 +254,7 @@ func (access *AccessControl) GetselectedChannelByAccessControlId(accessid int) (
 		return []string{}, autherr
 	}
 
-	contentAccessPages, err := Accessmodel.GetSelectedSpaces(accessid, access.DB)
+	contentAccessPages, err := Accessmodel.GetSelectedSpaces(accessid, access.DB, tenantid)
 
 	if err != nil {
 
@@ -272,7 +272,7 @@ func (access *AccessControl) GetselectedChannelByAccessControlId(accessid int) (
 }
 
 /**/
-func (access *AccessControl) GetselectedEntiresByAccessControlId(accessid int) ([]int, []Entry, error) {
+func (access *AccessControl) GetselectedEntiresByAccessControlId(accessid int, tenantid int) ([]int, []Entry, error) {
 
 	autherr := AuthandPermission(access)
 
@@ -285,7 +285,7 @@ func (access *AccessControl) GetselectedEntiresByAccessControlId(accessid int) (
 
 	var contentAccessEntries []TblAccessControlPages
 
-	Accessmodel.GetAccessGrantedEntries(&contentAccessEntries, accessid, access.DB)
+	Accessmodel.GetAccessGrantedEntries(&contentAccessEntries, accessid, access.DB, tenantid)
 
 	channelMap := make(map[int][]TblAccessControlPages)
 
@@ -311,7 +311,7 @@ func (access *AccessControl) GetselectedEntiresByAccessControlId(accessid int) (
 
 		var entriesCountInChannel int64
 
-		Accessmodel.GetEntriesCountUnderChannel(&entriesCountInChannel, channelId, access.DB)
+		Accessmodel.GetEntriesCountUnderChannel(&entriesCountInChannel, channelId, access.DB, tenantid)
 
 		if int(entriesCountInChannel) == len(entriesArr) {
 
@@ -379,7 +379,7 @@ func (access *AccessControl) CreateRestrictPage(accessid int, membergroups []int
 	return nil
 }
 
-func (access *AccessControl) CreateRestrictGroup(accessid int, membergroups []int, ids []int, createdBy int) error {
+func (access *AccessControl) CreateRestrictGroup(accessid int, membergroups []int, ids []int, createdBy int, tenantid int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -401,6 +401,8 @@ func (access *AccessControl) CreateRestrictGroup(accessid int, membergroups []in
 		membergrp.CreatedBy = createdBy
 
 		membergrp.CreatedOn = CurrentTime
+
+		membergrp.TenantId = tenantid
 
 		acces, err := Accessmodel.CreateMemberGroupRestrict(membergrp, access.DB)
 
@@ -426,6 +428,8 @@ func (access *AccessControl) CreateRestrictGroup(accessid int, membergroups []in
 			page.CreatedBy = createdBy
 
 			page.CreatedOn = CurrentTime
+
+			page.TenantId = tenantid
 
 			Accessmodel.CreatePage(&page, access.DB)
 
@@ -495,7 +499,7 @@ func (access *AccessControl) CreateRestrictSubPage(accessid int, membergroups []
 }
 
 /**/
-func (access *AccessControl) DeleteSeletedPage(accessid int, ids []int, DeletedBy int) error {
+func (access *AccessControl) DeleteSeletedPage(accessid int, ids []int, DeletedBy int, tenantid int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -506,7 +510,7 @@ func (access *AccessControl) DeleteSeletedPage(accessid int, ids []int, DeletedB
 
 	var grpsid []int
 
-	grps, err := Accessmodel.GetGroupsByAccessId(accessid, access.DB)
+	grps, err := Accessmodel.GetGroupsByAccessId(accessid, access.DB, tenantid)
 
 	if err != nil {
 
@@ -527,7 +531,7 @@ func (access *AccessControl) DeleteSeletedPage(accessid int, ids []int, DeletedB
 
 	acc.DeletedOn = CurrentTime
 
-	er := Accessmodel.DeletePage(&acc, grpsid, ids, access.DB)
+	er := Accessmodel.DeletePage(&acc, grpsid, ids, access.DB, tenantid)
 
 	if er != nil {
 
@@ -537,7 +541,7 @@ func (access *AccessControl) DeleteSeletedPage(accessid int, ids []int, DeletedB
 	return nil
 }
 
-func (access *AccessControl) DeleteSeletedGroup(accessid int, ids []int, DeletedBy int) error {
+func (access *AccessControl) DeleteSeletedGroup(accessid int, ids []int, DeletedBy int, tenantid int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -548,7 +552,7 @@ func (access *AccessControl) DeleteSeletedGroup(accessid int, ids []int, Deleted
 
 	var grpsid []int
 
-	grps, err := Accessmodel.GetGroupsByAccessId(accessid, access.DB)
+	grps, err := Accessmodel.GetGroupsByAccessId(accessid, access.DB, tenantid)
 
 	if err != nil {
 
@@ -569,7 +573,7 @@ func (access *AccessControl) DeleteSeletedGroup(accessid int, ids []int, Deleted
 
 	acc.DeletedOn = CurrentTime
 
-	er := Accessmodel.DeletePage(&acc, grpsid, ids, access.DB)
+	er := Accessmodel.DeletePage(&acc, grpsid, ids, access.DB, tenantid)
 
 	if er != nil {
 
@@ -579,7 +583,7 @@ func (access *AccessControl) DeleteSeletedGroup(accessid int, ids []int, Deleted
 	return nil
 }
 
-func (access *AccessControl) DeleteSelectedSpaces(accessid int, ids []int, DeletedBy int) error {
+func (access *AccessControl) DeleteSelectedSpaces(accessid int, ids []int, DeletedBy int, tenantid int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -590,7 +594,7 @@ func (access *AccessControl) DeleteSelectedSpaces(accessid int, ids []int, Delet
 
 	var grpsid []int
 
-	grps, err := Accessmodel.GetGroupsByAccessId(accessid, access.DB)
+	grps, err := Accessmodel.GetGroupsByAccessId(accessid, access.DB, tenantid)
 
 	if err != nil {
 
@@ -611,7 +615,7 @@ func (access *AccessControl) DeleteSelectedSpaces(accessid int, ids []int, Delet
 
 	acc.DeletedOn = CurrentTime
 
-	er := Accessmodel.DeletePage(&acc, grpsid, ids, access.DB)
+	er := Accessmodel.DeletePage(&acc, grpsid, ids, access.DB, tenantid)
 
 	if er != nil {
 
@@ -621,7 +625,7 @@ func (access *AccessControl) DeleteSelectedSpaces(accessid int, ids []int, Delet
 	return nil
 }
 
-func (access *AccessControl) UpdateAccessControl(accessid int, title string, ModifiedBy int) error {
+func (access *AccessControl) UpdateAccessControl(accessid int, title string, ModifiedBy int, tenantid int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -642,7 +646,7 @@ func (access *AccessControl) UpdateAccessControl(accessid int, title string, Mod
 
 	acc.ModifiedOn = CurrentTime
 
-	err := Accessmodel.UpdateContentAccessId(&acc, access.DB)
+	err := Accessmodel.UpdateContentAccessId(&acc, access.DB, tenantid)
 
 	if err != nil {
 
@@ -653,7 +657,7 @@ func (access *AccessControl) UpdateAccessControl(accessid int, title string, Mod
 }
 
 // Create Accesscontrol
-func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int) (accessdata TblAccessControl, aerr error) {
+func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int, tenantid int) (accessdata TblAccessControl, aerr error) {
 
 	autherr := AuthandPermission(access)
 
@@ -672,6 +676,8 @@ func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int) (
 
 	acc.CreatedOn = CurrentTime
 
+	acc.TenantId = tenantid
+
 	err := Accessmodel.NewContentAccessEntry(&acc, access.DB)
 
 	if err != nil {
@@ -683,7 +689,7 @@ func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int) (
 }
 
 // Delete Accesscontrol
-func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy int) error {
+func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy int, tenantid int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -700,7 +706,7 @@ func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy 
 
 	accesscontrol.IsDeleted = 1
 
-	err := Accessmodel.DeleteControlAccess(&accesscontrol, accessid, access.DB)
+	err := Accessmodel.DeleteControlAccess(&accesscontrol, accessid, access.DB, tenantid)
 
 	var acusergrp TblAccessControlUserGroup
 
@@ -710,11 +716,11 @@ func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy 
 
 	acusergrp.IsDeleted = 1
 
-	Accessmodel.DeleteInAccessUserGroup(&acusergrp, accessid, access.DB)
+	Accessmodel.DeleteInAccessUserGroup(&acusergrp, accessid, access.DB, tenantid)
 
 	var accessgrp []TblAccessControlUserGroup
 
-	Accessmodel.GetDeleteIdInAccessUserGroup(&accessgrp, accessid, access.DB)
+	Accessmodel.GetDeleteIdInAccessUserGroup(&accessgrp, accessid, access.DB, tenantid)
 
 	var pgid []int
 
@@ -732,7 +738,7 @@ func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy 
 
 	accesscontrolpg.IsDeleted = 1
 
-	Accessmodel.DeleteAccessControlPages(&accesscontrolpg, pgid, access.DB)
+	Accessmodel.DeleteAccessControlPages(&accesscontrolpg, pgid, access.DB, tenantid)
 
 	if err != nil {
 
@@ -743,7 +749,7 @@ func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy 
 	return nil
 }
 
-func (access *AccessControl) CreateRestrictEntries(accessid int, membergroups []int, entryids []Entry, createdBy int) error {
+func (access *AccessControl) CreateRestrictEntries(accessid int, membergroups []int, entryids []Entry, createdBy int, tenantid int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -765,6 +771,8 @@ func (access *AccessControl) CreateRestrictEntries(accessid int, membergroups []
 		membergrp.CreatedBy = createdBy
 
 		membergrp.CreatedOn = CurrentTime
+
+		membergrp.TenantId = tenantid
 
 		acces, err := Accessmodel.CreateMemberGroupRestrict(membergrp, access.DB)
 
@@ -802,7 +810,7 @@ func (access *AccessControl) CreateRestrictEntries(accessid int, membergroups []
 	return nil
 }
 
-func (access *AccessControl) GetaccessMemberGroup(accessid int) (group []int, err error) {
+func (access *AccessControl) GetaccessMemberGroup(accessid int, tenantid int) (group []int, err error) {
 
 	autherr := AuthandPermission(access)
 
@@ -812,7 +820,7 @@ func (access *AccessControl) GetaccessMemberGroup(accessid int) (group []int, er
 	}
 	var accessGrantedMemgrps []int
 
-	gerr := Accessmodel.GetAccessGrantedMemberGroupsList(&accessGrantedMemgrps, accessid, access.DB)
+	gerr := Accessmodel.GetAccessGrantedMemberGroupsList(&accessGrantedMemgrps, accessid, access.DB, tenantid)
 
 	if gerr != nil {
 
@@ -821,7 +829,7 @@ func (access *AccessControl) GetaccessMemberGroup(accessid int) (group []int, er
 	return accessGrantedMemgrps, nil
 }
 
-func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []int, entryids []Entry, userid int) error {
+func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []int, entryids []Entry, userid int, tenantid int) error {
 
 	autherr := AuthandPermission(access)
 
@@ -834,7 +842,7 @@ func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []
 
 		var access_count int64
 
-		err := Accessmodel.CheckPresenceOfAccessGrantedMemberGroups(&access_count, memgrp_id, accessid, access.DB)
+		err := Accessmodel.CheckPresenceOfAccessGrantedMemberGroups(&access_count, memgrp_id, accessid, access.DB, tenantid)
 
 		if err != nil {
 
@@ -855,8 +863,9 @@ func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []
 			memberGrpAccess.CreatedBy = userid
 
 			memberGrpAccess.IsDeleted = 0
+			memberGrpAccess.TenantId = tenantid
 
-			err = Accessmodel.GrantAccessToMemberGroups(&memberGrpAccess, access.DB)
+			err = Accessmodel.GrantAccessToMemberGroups(&memberGrpAccess, access.DB, tenantid)
 
 			if err != nil {
 
@@ -870,7 +879,7 @@ func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []
 
 			memberGrpAccess.ModifiedBy = userid
 
-			err = Accessmodel.UpdateContentAccessMemberGroup(&memberGrpAccess, access.DB)
+			err = Accessmodel.UpdateContentAccessMemberGroup(&memberGrpAccess, access.DB, tenantid)
 
 			if err != nil {
 
@@ -883,7 +892,7 @@ func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []
 	}
 	var MemGrpAccess []TblAccessControlUserGroup
 
-	Accessmodel.GetMemberGrpByAccessControlId(&MemGrpAccess, accessid, access.DB)
+	Accessmodel.GetMemberGrpByAccessControlId(&MemGrpAccess, accessid, access.DB, tenantid)
 
 	var entryIds []int
 
@@ -898,7 +907,7 @@ func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []
 
 			var entryCount int64
 
-			err := Accessmodel.CheckPresenceOfChannelEntriesInContentAccess(&entryCount, memgrp.Id, chanId, entryId, access.DB)
+			err := Accessmodel.CheckPresenceOfChannelEntriesInContentAccess(&entryCount, memgrp.Id, chanId, entryId, access.DB, tenantid)
 
 			if err != nil {
 
@@ -934,7 +943,7 @@ func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []
 
 				channelAccess.ModifiedBy = userid
 
-				err = Accessmodel.UpdateAccessPage(&channelAccess, access.DB)
+				err = Accessmodel.UpdateAccessPage(&channelAccess, access.DB, tenantid)
 
 				if err != nil {
 
@@ -974,7 +983,7 @@ func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []
 
 		pg_access1.DeletedBy = userid
 
-		err := Accessmodel.RemoveChannelEntriesNotUnderContentAccess(&pg_access1, entryIds, access.DB)
+		err := Accessmodel.RemoveChannelEntriesNotUnderContentAccess(&pg_access1, entryIds, access.DB, tenantid)
 
 		if err != nil {
 

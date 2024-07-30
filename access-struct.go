@@ -22,6 +22,7 @@ type Tblaccesscontrol struct {
 	MemberGroups         []member.TblMemberGroup `gorm:"-"`
 	DateString           string                  `gorm:"-"`
 	AccessGrantedModules []string                `gorm:"-"`
+	TenantId             int                     `gorm:"type:int"`
 }
 
 type tblaccesscontrol struct {
@@ -40,6 +41,7 @@ type tblaccesscontrol struct {
 	MemberGroups         []member.TblMemberGroup `gorm:"-"`
 	DateString           string                  `gorm:"-"`
 	AccessGrantedModules []string                `gorm:"-"`
+	TenantId             int                     `gorm:"type:int"`
 }
 
 type Tblaccesscontrolpages struct {
@@ -58,6 +60,7 @@ type Tblaccesscontrolpages struct {
 	ParentPageId             int       `gorm:"column:parent_id;<-:false"`
 	ChannelId                int
 	EntryId                  int
+	TenantId                 int `gorm:"type:int"`
 }
 
 type tblaccesscontrolusergroup struct {
@@ -74,6 +77,7 @@ type tblaccesscontrolusergroup struct {
 	PageId          int       `gorm:"-:migration;<-:false"`
 	PageGroupId     int       `gorm:"-:migration;<-:false"`
 	DeletedBy       int       `gorm:"DEFAULT:NULL"`
+	TenantId        int       `gorm:"type:int"`
 }
 
 type Filter struct {
@@ -85,22 +89,26 @@ type SubPage struct {
 	GroupId  string `json:"groupId"`
 	ParentId string `json:"parentId"`
 	SpaceId  string `json:"spaceId"`
+	TenantId int
 }
 
 type Page struct {
-	Id      string `json:"id"`
-	GroupId string `json:"groupId"`
-	SpaceId string `json:"spaceId"`
+	Id       string `json:"id"`
+	GroupId  string `json:"groupId"`
+	SpaceId  string `json:"spaceId"`
+	TenantId int
 }
 
 type PageGroup struct {
-	Id      string `json:"id"`
-	SpaceId string `json:"spaceId"`
+	Id       string `json:"id"`
+	SpaceId  string `json:"spaceId"`
+	TenantId int
 }
 
 type Entry struct {
 	Id        string `json:"id"`
 	ChannelId string `json:"channelId"`
+	TenantId  int
 }
 
 type RestrictPage struct {

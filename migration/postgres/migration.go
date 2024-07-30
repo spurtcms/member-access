@@ -1,4 +1,4 @@
-package memberaccess
+package postgres
 
 import (
 	"time"
@@ -18,6 +18,7 @@ type TblAccessControl struct {
 	DeletedOn         time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
 	DeletedBy         int       `gorm:"DEFAULT:NULL"`
 	TenantId          int       `gorm:"type:integer"`
+
 }
 
 type TblAccessControlPages struct {
@@ -36,6 +37,7 @@ type TblAccessControlPages struct {
 	ChannelId                int       `gorm:"type:integer"`
 	EntryId                  int       `gorm:"type:integer"`
 	TenantId                 int       `gorm:"type:integer"`
+
 }
 
 type TblAccessControlUserGroup struct {
@@ -50,9 +52,10 @@ type TblAccessControlUserGroup struct {
 	DeletedOn       time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
 	DeletedBy       int       `gorm:"DEFAULT:NULL"`
 	TenantId        int       `gorm:"type:integer"`
+
 }
 
-func Migration(db *gorm.DB) {
+func MigrationTables(db *gorm.DB) {
 
 	if err := db.AutoMigrate(
 		&TblAccessControl{},

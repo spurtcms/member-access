@@ -3,7 +3,7 @@ module github.com/spurtcms/member-access
 go 1.19
 
 require (
-	github.com/spurtcms/auth v0.0.0-20240422143037-2687a406bba1
+	github.com/spurtcms/auth v0.0.12
 	github.com/spurtcms/member v0.0.0-20240404121904-b393756a414f
 	gorm.io/gorm v1.25.9
 )

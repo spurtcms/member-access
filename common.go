@@ -2,6 +2,8 @@ package memberaccess
 
 import (
 	"errors"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -10,6 +12,7 @@ var (
 	ErrorPermission = errors.New("permissions enabled not initialised")
 	CurrentTime, _  = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 	Empty           string
+	TenantId, _     = strconv.Atoi(os.Getenv("TENANT_ID"))
 )
 
 func TruncateDescription(description string, limit int) string {
@@ -20,7 +23,6 @@ func TruncateDescription(description string, limit int) string {
 	truncated := description[:limit] + "..."
 	return truncated
 }
-
 
 func AuthandPermission(accessControl *AccessControl) error {
 
