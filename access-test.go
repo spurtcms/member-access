@@ -60,8 +60,8 @@ func Testing() {
 		}
 
 		// list selectedpage
-		pagelist, lerr := accesscontroller.GetselectedPageByAccessControlId(1, 1)
-		fmt.Println(pagelist, lerr)
+		// pagelist, lerr := accesscontroller.GetselectedPageByAccessControlId(1, 1)
+		// fmt.Println(pagelist, lerr)
 
 		// create restrictgroup
 		gerr := accesscontroller.CreateRestrictGroup(1, []int{1, 2}, []int{1, 2, 3}, 1, TenantId)
