@@ -812,6 +812,7 @@ func (access *AccessControl) CreateRestrictEntries(accessid int, membergroups []
 	return nil
 }
 
+//function used to retrieve the access granted member group list
 func (access *AccessControl) GetaccessMemberGroup(accessid int, tenantid int) (group []int, err error) {
 
 	autherr := AuthandPermission(access)
@@ -830,6 +831,8 @@ func (access *AccessControl) GetaccessMemberGroup(accessid int, tenantid int) (g
 	}
 	return accessGrantedMemgrps, nil
 }
+
+//function helps to update a member restrict access
 
 func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []int, entryids []Entry, userid int, tenantid int) error {
 
