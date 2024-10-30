@@ -674,7 +674,7 @@ func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int, t
 
 	acc.CreatedBy = ModifiedBy
 
-	acc.CreatedOn = CurrentTime
+	acc.CreatedOn,_ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	acc.TenantId = tenantid
 
