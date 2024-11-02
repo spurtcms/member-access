@@ -633,6 +633,7 @@ func (access *AccessControl) UpdateAccessControl(accessid int, title string, Mod
 
 		return autherr
 	}
+	
 
 	var acc TblAccessControl
 
@@ -644,7 +645,7 @@ func (access *AccessControl) UpdateAccessControl(accessid int, title string, Mod
 
 	acc.ModifiedBy = ModifiedBy
 
-	acc.ModifiedOn = CurrentTime
+	acc.ModifiedOn,_ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	err := Accessmodel.UpdateContentAccessId(&acc, access.DB, tenantid)
 
