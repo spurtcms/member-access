@@ -48,44 +48,45 @@ func main() {
 	if permisison {
 
 		//list contentaccess
-		contentaccesslist, count, err := accesscontroller.ContentAccessList(10, 0, access.Filter{})
-		fmt.Println(contentaccesslist, count, err)
+         contentaccesslist, count, err := accesscontroller.ContentAccessList(10, 0, Filter{}, 1)
+
+		if err != nil {
+
+			panic(err)
+		}		fmt.Println(contentaccesslist, count, err)
 
 		//create contentaccess
-		cerr := accesscontroller.CreateAccessControl("Demo Entries Access", 1)
+		_,err := accesscontroller.CreateAccessControl("Demo Entries Access",1,1)
 
-		if cerr != nil {
+		if err != nil {
 
-			fmt.Println(cerr)
+			panic(err)
 		}
 
 		// update contentaccess
-		uerr := accesscontroller.UpdateAccessControl(1, "Entries Access", 1)
+	err := accesscontroller.UpdateAccessControl(1,"sports",1,1)
 
-		if uerr != nil {
+		if err != nil {
 
-			fmt.Println(uerr)
+			panic(err)
 		}
 
 		// delete contentaccess
-		derr := accesscontroller.DeleteMemberAccessControl(2, 1)
+			err := accesscontroller.DeleteMemberAccessControl(2,1,1)
 
-		if derr != nil {
+		if err != nil {
 
-			fmt.Println(derr)
+			panic(err)
 		}
 
-		// list selectedpage
-		pagelist, lerr := accesscontroller.GetselectedPageByAccessControlId(1)
-		fmt.Println(pagelist, lerr)
 
 		// create restrictgroup
-		gerr := accesscontroller.CreateRestrictGroup(1, []int{1, 2}, []int{1, 2, 3}, 1)
+		err := accesscontroller.CreateRestrictGroup(1, []int{1, 2}, []int{1, 2, 3}, 1, 1)
 
-		if gerr != nil {
+	if err != nil {
 
-			fmt.Println(gerr)
-		}
+		panic(err)
+	}
 	}
 
 }
