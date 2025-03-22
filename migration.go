@@ -17,7 +17,7 @@ type TblAccessControl struct {
 	IsDeleted         int       `gorm:"type:integer"`
 	DeletedOn         time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
 	DeletedBy         int       `gorm:"DEFAULT:NULL"`
-	TenantId          int       `gorm:"type:integer"`
+	TenantId          string    `gorm:"type:character varying"`
 }
 
 type TblAccessControlPages struct {
@@ -35,7 +35,7 @@ type TblAccessControlPages struct {
 	DeletedBy                int       `gorm:"DEFAULT:NULL"`
 	ChannelId                int       `gorm:"type:integer"`
 	EntryId                  int       `gorm:"type:integer"`
-	TenantId                 int       `gorm:"type:integer"`
+	TenantId                 string    `gorm:"type:character varying"`
 }
 
 type TblAccessControlUserGroup struct {
@@ -49,7 +49,7 @@ type TblAccessControlUserGroup struct {
 	IsDeleted       int       `gorm:"type:integer"`
 	DeletedOn       time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
 	DeletedBy       int       `gorm:"DEFAULT:NULL"`
-	TenantId        int       `gorm:"type:integer"`
+	TenantId        string    `gorm:"type:character varying"`
 }
 
 func Migration(db *gorm.DB) {

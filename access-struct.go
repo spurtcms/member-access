@@ -102,13 +102,13 @@ type Page struct {
 type PageGroup struct {
 	Id       string `json:"id"`
 	SpaceId  string `json:"spaceId"`
-	TenantId int
+	TenantId string
 }
 
 type Entry struct {
 	Id        string `json:"id"`
 	ChannelId string `json:"channelId"`
-	TenantId  int
+	TenantId  string
 }
 
 type RestrictPage struct {

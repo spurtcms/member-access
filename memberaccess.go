@@ -21,7 +21,7 @@ func AccessSetup(config Config) *AccessControl {
 }
 
 /*List */
-func (access *AccessControl) ContentAccessList(limit int, offset int, filter Filter, tenantid int) (accesslist []Tblaccesscontrol, totalCount int64, err error) {
+func (access *AccessControl) ContentAccessList(limit int, offset int, filter Filter, tenantid string) (accesslist []Tblaccesscontrol, totalCount int64, err error) {
 
 	autherr := AuthandPermission(access)
 
@@ -97,7 +97,7 @@ func (access *AccessControl) ContentAccessList(limit int, offset int, filter Fil
 }
 
 /*Get Access by id*/
-func (access *AccessControl) GetControlAccessById(accessid int, tenantid int) (accesslist Tblaccesscontrol, err error) {
+func (access *AccessControl) GetControlAccessById(accessid int, tenantid string) (accesslist Tblaccesscontrol, err error) {
 
 	autherr := AuthandPermission(access)
 
@@ -113,7 +113,7 @@ func (access *AccessControl) GetControlAccessById(accessid int, tenantid int) (a
 }
 
 /**/
-// func (access *AccessControl) GetselectedPageByAccessControlId(accessid int, tenantid int) ([]Page, error) {
+// func (access *AccessControl) GetselectedPageByAccessControlId(accessid int, tenantid string) ([]Page, error) {
 
 // 	autherr := AuthandPermission(access)
 
@@ -148,7 +148,7 @@ func (access *AccessControl) GetControlAccessById(accessid int, tenantid int) (a
 // }
 
 /**/
-// func (access *AccessControl) GetselectedGroupByAccessControlId(accessid int, tenantid int) ([]PageGroup, error) {
+// func (access *AccessControl) GetselectedGroupByAccessControlId(accessid int, tenantid string) ([]PageGroup, error) {
 
 // 	autherr := AuthandPermission(access)
 
@@ -181,7 +181,7 @@ func (access *AccessControl) GetControlAccessById(accessid int, tenantid int) (a
 // }
 
 /**/
-// func (access *AccessControl) GetselectedSubPageByAccessControlId(accessid int, tenantid int) ([]SubPage, error) {
+// func (access *AccessControl) GetselectedSubPageByAccessControlId(accessid int, tenantid string) ([]SubPage, error) {
 
 // 	autherr := AuthandPermission(access)
 
@@ -218,7 +218,7 @@ func (access *AccessControl) GetControlAccessById(accessid int, tenantid int) (a
 // }
 
 /**/
-// func (access *AccessControl) GetselectedSpacesByAccessControlId(accessid int, tenantid int) ([]string, error) {
+// func (access *AccessControl) GetselectedSpacesByAccessControlId(accessid int, tenantid string) ([]string, error) {
 
 // 	autherr := AuthandPermission(access)
 
@@ -245,7 +245,7 @@ func (access *AccessControl) GetControlAccessById(accessid int, tenantid int) (a
 // }
 
 /**/
-// func (access *AccessControl) GetselectedChannelByAccessControlId(accessid int, tenantid int) ([]string, error) {
+// func (access *AccessControl) GetselectedChannelByAccessControlId(accessid int, tenantid string) ([]string, error) {
 
 // 	autherr := AuthandPermission(access)
 
@@ -272,7 +272,7 @@ func (access *AccessControl) GetControlAccessById(accessid int, tenantid int) (a
 // }
 
 /**/
-func (access *AccessControl) GetselectedEntiresByAccessControlId(accessid int, tenantid int) ([]int, []Entry, error) {
+func (access *AccessControl) GetselectedEntiresByAccessControlId(accessid int, tenantid string) ([]int, []Entry, error) {
 
 	autherr := AuthandPermission(access)
 
@@ -379,7 +379,7 @@ func (access *AccessControl) CreateRestrictPage(accessid int, membergroups []int
 	return nil
 }
 
-func (access *AccessControl) CreateRestrictGroup(accessid int, membergroups []int, ids []int, createdBy int, tenantid int) error {
+func (access *AccessControl) CreateRestrictGroup(accessid int, membergroups []int, ids []int, createdBy int, tenantid string) error {
 
 	autherr := AuthandPermission(access)
 
@@ -499,7 +499,7 @@ func (access *AccessControl) CreateRestrictSubPage(accessid int, membergroups []
 }
 
 /**/
-func (access *AccessControl) DeleteSeletedPage(accessid int, ids []int, DeletedBy int, tenantid int) error {
+func (access *AccessControl) DeleteSeletedPage(accessid int, ids []int, DeletedBy int, tenantid string) error {
 
 	autherr := AuthandPermission(access)
 
@@ -541,7 +541,7 @@ func (access *AccessControl) DeleteSeletedPage(accessid int, ids []int, DeletedB
 	return nil
 }
 
-func (access *AccessControl) DeleteSeletedGroup(accessid int, ids []int, DeletedBy int, tenantid int) error {
+func (access *AccessControl) DeleteSeletedGroup(accessid int, ids []int, DeletedBy int, tenantid string) error {
 
 	autherr := AuthandPermission(access)
 
@@ -583,7 +583,7 @@ func (access *AccessControl) DeleteSeletedGroup(accessid int, ids []int, Deleted
 	return nil
 }
 
-func (access *AccessControl) DeleteSelectedSpaces(accessid int, ids []int, DeletedBy int, tenantid int) error {
+func (access *AccessControl) DeleteSelectedSpaces(accessid int, ids []int, DeletedBy int, tenantid string) error {
 
 	autherr := AuthandPermission(access)
 
@@ -625,7 +625,7 @@ func (access *AccessControl) DeleteSelectedSpaces(accessid int, ids []int, Delet
 	return nil
 }
 
-func (access *AccessControl) UpdateAccessControl(accessid int, title string, ModifiedBy int, tenantid int) error {
+func (access *AccessControl) UpdateAccessControl(accessid int, title string, ModifiedBy int, tenantid string) error {
 
 	autherr := AuthandPermission(access)
 
@@ -633,7 +633,6 @@ func (access *AccessControl) UpdateAccessControl(accessid int, title string, Mod
 
 		return autherr
 	}
-	
 
 	var acc TblAccessControl
 
@@ -645,7 +644,7 @@ func (access *AccessControl) UpdateAccessControl(accessid int, title string, Mod
 
 	acc.ModifiedBy = ModifiedBy
 
-	acc.ModifiedOn,_ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+	acc.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	err := Accessmodel.UpdateContentAccessId(&acc, access.DB, tenantid)
 
@@ -658,7 +657,7 @@ func (access *AccessControl) UpdateAccessControl(accessid int, title string, Mod
 }
 
 // Create Accesscontrol
-func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int, tenantid int) (accessdata TblAccessControl, aerr error) {
+func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int, tenantid string) (accessdata TblAccessControl, aerr error) {
 
 	autherr := AuthandPermission(access)
 
@@ -675,7 +674,7 @@ func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int, t
 
 	acc.CreatedBy = ModifiedBy
 
-	acc.CreatedOn,_ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+	acc.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	acc.TenantId = tenantid
 
@@ -690,7 +689,7 @@ func (access *AccessControl) CreateAccessControl(title string, ModifiedBy int, t
 }
 
 // Delete Accesscontrol
-func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy int, tenantid int) error {
+func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy int, tenantid string) error {
 
 	autherr := AuthandPermission(access)
 
@@ -750,7 +749,7 @@ func (access *AccessControl) DeleteMemberAccessControl(accessid int, ModifiedBy 
 	return nil
 }
 
-func (access *AccessControl) CreateRestrictEntries(accessid int, membergroups []int, entryids []Entry, createdBy int, tenantid int) error {
+func (access *AccessControl) CreateRestrictEntries(accessid int, membergroups []int, entryids []Entry, createdBy int, tenantid string) error {
 
 	autherr := AuthandPermission(access)
 
@@ -813,8 +812,8 @@ func (access *AccessControl) CreateRestrictEntries(accessid int, membergroups []
 	return nil
 }
 
-//function used to retrieve the access granted member group list
-func (access *AccessControl) GetaccessMemberGroup(accessid int, tenantid int) (group []int, err error) {
+// function used to retrieve the access granted member group list
+func (access *AccessControl) GetaccessMemberGroup(accessid int, tenantid string) (group []int, err error) {
 
 	autherr := AuthandPermission(access)
 
@@ -835,7 +834,7 @@ func (access *AccessControl) GetaccessMemberGroup(accessid int, tenantid int) (g
 
 //function helps to update a member restrict access
 
-func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []int, entryids []Entry, userid int, tenantid int) error {
+func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []int, entryids []Entry, userid int, tenantid string) error {
 
 	autherr := AuthandPermission(access)
 
@@ -1002,4 +1001,3 @@ func (access *AccessControl) UpdateRestrictEntries(accessid int, membergroups []
 
 	return nil
 }
-

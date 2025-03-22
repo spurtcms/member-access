@@ -63,7 +63,7 @@ func TestContentAccessList(t *testing.T) {
 
 	Auth.VerifyToken(token, SecretKey)
 
-	permisison, _ := Auth.IsGranted("Member Restrict", auth.CRUD, 1)
+	permisison, _ := Auth.IsGranted("Member Restrict", auth.CRUD, "1")
 
 	accesscontroller := AccessSetup(Config{
 		DB:               db,
@@ -73,7 +73,7 @@ func TestContentAccessList(t *testing.T) {
 	})
 	if permisison {
 
-		contentaccesslist, count, err := accesscontroller.ContentAccessList(10, 0, Filter{}, 1)
+		contentaccesslist, count, err := accesscontroller.ContentAccessList(10, 0, Filter{}, "1")
 
 		if err != nil {
 
@@ -109,7 +109,7 @@ func TestGetControlAccessById(t *testing.T) {
 
 	Auth.VerifyToken(token, SecretKey)
 
-	permisison, _ := Auth.IsGranted("Member Restrict", auth.CRUD, 1)
+	permisison, _ := Auth.IsGranted("Member Restrict", auth.CRUD, "1")
 
 	accesscontroller := AccessSetup(Config{
 		DB:               db,
@@ -119,7 +119,7 @@ func TestGetControlAccessById(t *testing.T) {
 	})
 	if permisison {
 
-		contentaccess, err := accesscontroller.GetControlAccessById(1, 1)
+		contentaccess, err := accesscontroller.GetControlAccessById(1, "1")
 
 		if err != nil {
 
@@ -145,7 +145,7 @@ func TestGetselectedEntiresByAccessControlId(t *testing.T) {
 		AuthEnable:       false,
 		PermissionEnable: false,
 	})
-	channelIds, entries, err := accesscontroller.GetselectedEntiresByAccessControlId(1, 1)
+	channelIds, entries, err := accesscontroller.GetselectedEntiresByAccessControlId(1, "1")
 
 	if err != nil {
 
@@ -188,7 +188,7 @@ func TestCreateRestrictGroup(t *testing.T) {
 		PermissionEnable: false,
 	})
 
-	err := accesscontroller.CreateRestrictGroup(1, []int{1, 2}, []int{1, 2, 3}, 1, 1)
+	err := accesscontroller.CreateRestrictGroup(1, []int{1, 2}, []int{1, 2, 3}, 1, "1")
 
 	if err != nil {
 
@@ -228,7 +228,7 @@ func TestDeleteSeletedPage(t *testing.T) {
 		PermissionEnable: false,
 	})
 
-	err := accesscontroller.DeleteSeletedPage(1, []int{1, 2, 3}, 1, 1)
+	err := accesscontroller.DeleteSeletedPage(1, []int{1, 2, 3}, 1, "1")
 
 	if err != nil {
 
@@ -248,12 +248,12 @@ func TestDeleteSeletedGroup(t *testing.T) {
 		PermissionEnable: false,
 	})
 
-		err := accesscontroller.DeleteSeletedGroup(1,[]int{1,2},1,1)
+	err := accesscontroller.DeleteSeletedGroup(1, []int{1, 2}, 1, "1")
 
-		if err != nil {
+	if err != nil {
 
-			panic(err)
-		}
+		panic(err)
+	}
 
 }
 
@@ -268,12 +268,12 @@ func TestUpdateAccessControl(t *testing.T) {
 		PermissionEnable: false,
 	})
 
-		err := accesscontroller.UpdateAccessControl(1,"sports",1,1)
+	err := accesscontroller.UpdateAccessControl(1, "sports", 1, "1")
 
-		if err != nil {
+	if err != nil {
 
-			panic(err)
-		}
+		panic(err)
+	}
 
 }
 
@@ -288,12 +288,12 @@ func TestCreateAccessControl(t *testing.T) {
 		PermissionEnable: false,
 	})
 
-		_,err := accesscontroller.CreateAccessControl("Demo Entries Access",1,1)
+	_, err := accesscontroller.CreateAccessControl("Demo Entries Access", 1, "1")
 
-		if err != nil {
+	if err != nil {
 
-			panic(err)
-		}
+		panic(err)
+	}
 
 }
 
@@ -308,11 +308,11 @@ func TestDeleteMemberAccessControl(t *testing.T) {
 		PermissionEnable: false,
 	})
 
-		err := accesscontroller.DeleteMemberAccessControl(2,1,1)
+	err := accesscontroller.DeleteMemberAccessControl(2, 1, "1")
 
-		if err != nil {
+	if err != nil {
 
-			panic(err)
-		}
+		panic(err)
+	}
 
 }
